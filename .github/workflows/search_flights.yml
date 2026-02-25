@@ -1,15 +1,18 @@
 name: ✈️ 항공편 검색
 
 on:
+  # 수동 실행
   workflow_dispatch:
+  
+  # 자동 스케줄 (하루 2번: 한국시간 오전 9시, 오후 9시)
   schedule:
-    - cron: '0 0 * * *'
-    - cron: '0 12 * * *'
+    - cron: '0 0 * * *'   # UTC 00:00 = KST 09:00
+    - cron: '0 12 * * *'  # UTC 12:00 = KST 21:00
 
 jobs:
   search:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,13 +29,12 @@ jobs:
         env:
           AMADEUS_CLIENT_ID: ${{ secrets.AMADEUS_CLIENT_ID }}
           AMADEUS_CLIENT_SECRET: ${{ secrets.AMADEUS_CLIENT_SECRET }}
-        run: |
-          mkdir -p deploy
-          python flight_search.py deploy/index.html
+        run: python flight_search.py index.html
 
-      - name: Deploy to gh-pages
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./deploy
+          publish_dir: ./
           publish_branch: gh-pages
+          keep_files: false
