@@ -176,6 +176,26 @@ def get_airline_name(code):
 
 
 # ============================================================
+# 스카이스캐너 링크 생성
+# ============================================================
+SKYSCANNER_CITY = {
+    "PUS": "PUS",
+    "TAE": "TAE",
+    "HKG": "HKG",
+    "PVG": "PVGA",
+}
+
+def make_skyscanner_url(origin, destination, dep_date, ret_date, adults=4):
+    """스카이스캐너 검색 URL 생성"""
+    o = SKYSCANNER_CITY.get(origin, origin)
+    d = SKYSCANNER_CITY.get(destination, destination)
+    # 날짜 형식: YYMMDD
+    dep = datetime.strptime(dep_date, "%Y-%m-%d").strftime("%y%m%d")
+    ret = datetime.strptime(ret_date, "%Y-%m-%d").strftime("%y%m%d")
+    return f"https://www.skyscanner.co.kr/transport/flights/{o}/{d}/{dep}/{ret}/?adults={adults}&adultsv2={adults}&cabinclass=economy&childrenv2=&ref=home&rtn=1&preferdirects=true"
+
+
+# ============================================================
 # HTML 리포트 생성
 # ============================================================
 def generate_html(results, api_call_count):
@@ -224,8 +244,11 @@ def generate_html(results, api_call_count):
                 
                 badge_class = "badge-cheap" if f["price_per_person"] < 400000 else "badge-mid" if f["price_per_person"] < 500000 else "badge-normal"
                 
+                sky_url = make_skyscanner_url(f["origin"], f["destination"], f["dep_date"], f["ret_date"])
+                
                 cards_html += f"""
-    <div class="flight-card" style="animation-delay: {i * 0.08}s">
+    <a href="{sky_url}" target="_blank" rel="noopener" class="flight-card-link" style="animation-delay: {i * 0.08}s">
+    <div class="flight-card">
       <div class="card-top">
         <div class="route-badge">{f['route']}</div>
         <div class="nights-badge">{f['nights']}박{f['days']}일</div>
@@ -261,9 +284,13 @@ def generate_html(results, api_call_count):
           <div class="price-total">₩{price_display} <span class="price-label">4인 합계</span></div>
           <div class="price-pp">1인당 ₩{price_pp}</div>
         </div>
-        <div class="seats-badge {badge_class}">잔여 {f['seats']}석</div>
+        <div class="card-bottom-right">
+          <div class="seats-badge {badge_class}">잔여 {f['seats']}석</div>
+          <div class="sky-link">스카이스캐너에서 보기 ↗</div>
+        </div>
       </div>
     </div>
+    </a>
 """
             cards_html += "  </div>\n</div>\n"
     
@@ -447,9 +474,7 @@ def generate_html(results, api_call_count):
   }}
 
   .flight-card:hover {{
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-    border-color: var(--accent);
+    /* hover는 .flight-card-link에서 처리 */
   }}
 
   @keyframes cardIn {{
@@ -577,6 +602,46 @@ def generate_html(results, api_call_count):
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
     white-space: nowrap;
+  }}
+
+  /* 카드 링크 래퍼 */
+  .flight-card-link {{
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    animation: cardIn 0.5s ease-out both;
+  }}
+
+  .flight-card-link:hover .flight-card {{
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    border-color: var(--accent);
+  }}
+
+  .flight-card-link:hover .sky-link {{
+    opacity: 1;
+    color: var(--accent);
+  }}
+
+  .card-bottom-right {{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+  }}
+
+  .sky-link {{
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    opacity: 0.6;
+    transition: opacity 0.2s, color 0.2s;
+    white-space: nowrap;
+  }}
+
+  /* 카드 hover 제거 (링크 래퍼에서 처리) */
+  .flight-card {{
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   }}
 
   .badge-cheap {{
