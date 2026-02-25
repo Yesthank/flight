@@ -228,29 +228,61 @@ def generate_html(results, api_call_count):
         for date_label, flights in groups.items():
             cards_html += f'<div class="date-group">\n'
             cards_html += f'  <h2 class="date-header"><span class="date-icon">📅</span> {date_label}</h2>\n'
-            cards_html += f'  <div class="flight-grid">\n'
             
-            for i, f in enumerate(flights):
-                airline_name = get_airline_name(f["go_airline"])
-                ret_airline_name = get_airline_name(f["ret_airline"])
+            # 날짜 내에서 노선별 서브그룹
+            route_groups = {}
+            for f in flights:
+                rkey = f"{f['origin']}-{f['destination']}"
+                if rkey not in route_groups:
+                    route_groups[rkey] = []
+                route_groups[rkey].append(f)
+            
+            for rkey, route_flights in route_groups.items():
+                orig = route_flights[0]["origin"]
+                dest = route_flights[0]["destination"]
+                # 출발지+도착지 조합으로 색상 결정
+                color_map = {
+                    "PUS-HKG": ("origin-pus", "dest-hkg"),
+                    "PUS-PVG": ("origin-pus", "dest-pvg"),
+                    "TAE-HKG": ("origin-tae", "dest-hkg"),
+                    "TAE-PVG": ("origin-tae", "dest-pvg"),
+                }
+                origin_cls, dest_cls = color_map.get(rkey, ("", ""))
+                route_label = route_flights[0]["route"]
+                origin_name = route_label.split(" → ")[0]
+                dest_name = route_label.split(" → ")[1]
                 
-                go_dep_time = f["go_depart"][11:16]
-                go_arr_time = f["go_arrive"][11:16]
-                ret_dep_time = f["ret_depart"][11:16]
-                ret_arr_time = f["ret_arrive"][11:16]
+                cards_html += f'  <div class="route-subgroup">\n'
+                cards_html += f'    <div class="route-tag-bar">'
+                cards_html += f'<span class="route-tag {origin_cls}">{origin_name}</span>'
+                cards_html += f'<span class="route-arrow-tag">✈️</span>'
+                cards_html += f'<span class="route-tag {dest_cls}">{dest_name}</span>'
+                cards_html += f'</div>\n'
+                cards_html += f'    <div class="flight-grid">\n'
                 
-                price_display = f"{f['total_price']:,}"
-                price_pp = f"{f['price_per_person']:,}"
+                for i, f in enumerate(route_flights):
+                    airline_name = get_airline_name(f["go_airline"])
+                    ret_airline_name = get_airline_name(f["ret_airline"])
                 
-                badge_class = "badge-cheap" if f["price_per_person"] < 400000 else "badge-mid" if f["price_per_person"] < 500000 else "badge-normal"
+                    go_dep_time = f["go_depart"][11:16]
+                    go_arr_time = f["go_arrive"][11:16]
+                    ret_dep_time = f["ret_depart"][11:16]
+                    ret_arr_time = f["ret_arrive"][11:16]
                 
-                sky_url = make_skyscanner_url(f["origin"], f["destination"], f["dep_date"], f["ret_date"])
+                    price_display = f"{f['total_price']:,}"
+                    price_pp = f"{f['price_per_person']:,}"
                 
-                cards_html += f"""
+                    badge_class = "badge-cheap" if f["price_per_person"] < 400000 else "badge-mid" if f["price_per_person"] < 500000 else "badge-normal"
+                
+                    sky_url = make_skyscanner_url(f["origin"], f["destination"], f["dep_date"], f["ret_date"])
+                
+                    card_border_cls = f"{origin_cls}-border"
+                
+                    cards_html += f"""
     <a href="{sky_url}" target="_blank" rel="noopener" class="flight-card-link" style="animation-delay: {i * 0.08}s">
-    <div class="flight-card">
+    <div class="flight-card {card_border_cls}">
       <div class="card-top">
-        <div class="route-badge">{f['route']}</div>
+        <div class="route-badge"><span class="rb-origin {origin_cls}">{f['route'].split(' → ')[0]}</span> → <span class="rb-dest {dest_cls}">{f['route'].split(' → ')[1]}</span></div>
         <div class="nights-badge">{f['nights']}박{f['days']}일</div>
       </div>
       <div class="card-body">
@@ -292,7 +324,8 @@ def generate_html(results, api_call_count):
     </div>
     </a>
 """
-            cards_html += "  </div>\n</div>\n"
+                cards_html += "    </div>\n  </div>\n"  # close flight-grid + route-subgroup
+            cards_html += "</div>\n"  # close date-group
     
     html = f"""<!DOCTYPE html>
 <html lang="ko">
@@ -436,6 +469,64 @@ def generate_html(results, api_call_count):
   .cond-chip .cond-value {{
     font-weight: 700;
     color: var(--text);
+  }}
+
+  /* 노선 서브그룹 */
+  .route-subgroup {{
+    margin-bottom: 1.2rem;
+  }}
+
+  .route-tag-bar {{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+    padding-left: 0.2rem;
+  }}
+
+  .route-tag {{
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.3rem 0.9rem;
+    border-radius: 8px;
+    letter-spacing: 0.01em;
+  }}
+
+  .route-arrow-tag {{
+    font-size: 0.9rem;
+  }}
+
+  /* 출발지 컬러 */
+  .origin-pus {{
+    background: rgba(96, 165, 250, 0.15);
+    color: #7cb8ff;
+  }}
+  .origin-tae {{
+    background: rgba(251, 146, 60, 0.15);
+    color: #ffb066;
+  }}
+
+  /* 도착지 컬러 */
+  .dest-hkg {{
+    background: rgba(244, 114, 182, 0.15);
+    color: #f9a8d4;
+  }}
+  .dest-pvg {{
+    background: rgba(52, 211, 153, 0.15);
+    color: #6ee7b7;
+  }}
+
+  /* 카드 왼쪽 보더 컬러 */
+  .origin-pus-border {{
+    border-left: 3px solid rgba(96, 165, 250, 0.5);
+  }}
+  .origin-tae-border {{
+    border-left: 3px solid rgba(251, 146, 60, 0.5);
+  }}
+
+  /* 카드 내 노선 텍스트 컬러 */
+  .rb-origin, .rb-dest {{
+    font-weight: 700;
   }}
 
   /* 날짜 그룹 */
