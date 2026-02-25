@@ -577,9 +577,9 @@ def generate_html(results, api_call_count):
   }}
 
   .price-total {{
-    font-size: 1.15rem;
-    font-weight: 900;
-    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-dim);
   }}
 
   .price-label {{
@@ -590,9 +590,9 @@ def generate_html(results, api_call_count):
   }}
 
   .price-pp {{
-    font-size: 0.8rem;
+    font-size: 1.2rem;
+    font-weight: 900;
     color: var(--green);
-    font-weight: 600;
     margin-top: 0.15rem;
   }}
 
