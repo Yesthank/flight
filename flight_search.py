@@ -32,12 +32,17 @@ ORIGINS = {
 DESTINATIONS = {
     "HKG": "홍콩",
     "PVG": "상하이(푸동)",
+    "PEK": "베이징",
+    "TAO": "칭다오",
+    "NRT": "도쿄(나리타)",
+    "CTS": "삿포로",
 }
 
 # (출발일, 귀국일, 표시용 라벨)
 DATE_PAIRS = [
     ("2026-05-01", "2026-05-04", "5/1~5/4 (3박4일)"),
     ("2026-05-01", "2026-05-05", "5/1~5/5 (4박5일)"),
+    ("2026-05-22", "2026-05-25", "5/22~5/25 (3박4일)"),
     ("2026-05-22", "2026-05-26", "5/22~5/26 (4박5일)"),
     ("2026-05-23", "2026-05-26", "5/23~5/26 (3박4일)"),
 ]
@@ -183,6 +188,10 @@ SKYSCANNER_CITY = {
     "TAE": "TAE",
     "HKG": "HKG",
     "PVG": "PVGA",
+    "PEK": "PEKA",
+    "TAO": "TAO",
+    "NRT": "TYOA",
+    "CTS": "CTS",
 }
 
 def make_skyscanner_url(origin, destination, dep_date, ret_date, adults=4):
@@ -244,8 +253,16 @@ def generate_html(results, api_call_count):
                 color_map = {
                     "PUS-HKG": ("origin-pus", "dest-hkg"),
                     "PUS-PVG": ("origin-pus", "dest-pvg"),
+                    "PUS-PEK": ("origin-pus", "dest-pek"),
+                    "PUS-TAO": ("origin-pus", "dest-tao"),
+                    "PUS-NRT": ("origin-pus", "dest-nrt"),
+                    "PUS-CTS": ("origin-pus", "dest-cts"),
                     "TAE-HKG": ("origin-tae", "dest-hkg"),
                     "TAE-PVG": ("origin-tae", "dest-pvg"),
+                    "TAE-PEK": ("origin-tae", "dest-pek"),
+                    "TAE-TAO": ("origin-tae", "dest-tao"),
+                    "TAE-NRT": ("origin-tae", "dest-nrt"),
+                    "TAE-CTS": ("origin-tae", "dest-cts"),
                 }
                 origin_cls, dest_cls = color_map.get(rkey, ("", ""))
                 route_label = route_flights[0]["route"]
@@ -514,6 +531,22 @@ def generate_html(results, api_call_count):
   .dest-pvg {{
     background: rgba(52, 211, 153, 0.15);
     color: #6ee7b7;
+  }}
+  .dest-pek {{
+    background: rgba(248, 113, 113, 0.15);
+    color: #fca5a5;
+  }}
+  .dest-tao {{
+    background: rgba(251, 191, 36, 0.15);
+    color: #fde68a;
+  }}
+  .dest-nrt {{
+    background: rgba(167, 139, 250, 0.15);
+    color: #c4b5fd;
+  }}
+  .dest-cts {{
+    background: rgba(56, 189, 248, 0.15);
+    color: #7dd3fc;
   }}
 
   /* 카드 왼쪽 보더 컬러 */
@@ -794,7 +827,7 @@ def generate_html(results, api_call_count):
 <div class="container">
   <div class="header">
     <h1>✈️ 5월 항공편 검색</h1>
-    <p class="subtitle">김해·대구 출발 → 홍콩·상하이 직항 | 4인 기준</p>
+    <p class="subtitle">김해·대구 출발 → 홍콩·상하이·베이징·칭다오·도쿄·삿포로 직항 | 4인 기준</p>
     <div class="meta-bar">
       <div class="meta-item">🕐 업데이트 <span>{now}</span></div>
       <div class="meta-item">🔍 API 호출 <span>{api_call_count}회</span></div>
@@ -809,7 +842,7 @@ def generate_html(results, api_call_count):
     </div>
     <div class="cond-chip">
       <div class="cond-label">도착지</div>
-      <div class="cond-value">홍콩 · 상하이</div>
+      <div class="cond-value">홍콩·상하이·베이징·칭다오·도쿄·삿포로</div>
     </div>
     <div class="cond-chip">
       <div class="cond-label">조건</div>
@@ -888,6 +921,46 @@ def generate_demo():
             "ret_flight": "BX734", "ret_airline": "BX",
             "ret_depart": "2026-05-26T11:45", "ret_arrive": "2026-05-26T16:30",
             "total_price": 1640000, "price_per_person": 410000, "seats": 6,
+        },
+        {
+            "route": "김해(부산) → 도쿄(나리타)", "date_label": "5/1~5/4 (3박4일)",
+            "nights": 3, "days": 4, "origin": "PUS", "destination": "NRT",
+            "dep_date": "2026-05-01", "ret_date": "2026-05-04",
+            "go_flight": "7C1102", "go_airline": "7C",
+            "go_depart": "2026-05-01T10:00", "go_arrive": "2026-05-01T12:15",
+            "ret_flight": "7C1103", "ret_airline": "7C",
+            "ret_depart": "2026-05-04T13:30", "ret_arrive": "2026-05-04T16:00",
+            "total_price": 1480000, "price_per_person": 370000, "seats": 8,
+        },
+        {
+            "route": "대구 → 베이징", "date_label": "5/1~5/5 (4박5일)",
+            "nights": 4, "days": 5, "origin": "TAE", "destination": "PEK",
+            "dep_date": "2026-05-01", "ret_date": "2026-05-05",
+            "go_flight": "CA132", "go_airline": "CA",
+            "go_depart": "2026-05-01T09:30", "go_arrive": "2026-05-01T11:00",
+            "ret_flight": "CA133", "ret_airline": "CA",
+            "ret_depart": "2026-05-05T12:00", "ret_arrive": "2026-05-05T15:20",
+            "total_price": 1320000, "price_per_person": 330000, "seats": 10,
+        },
+        {
+            "route": "김해(부산) → 칭다오", "date_label": "5/22~5/26 (4박5일)",
+            "nights": 4, "days": 5, "origin": "PUS", "destination": "TAO",
+            "dep_date": "2026-05-22", "ret_date": "2026-05-26",
+            "go_flight": "CZ6028", "go_airline": "CZ",
+            "go_depart": "2026-05-22T08:00", "go_arrive": "2026-05-22T09:10",
+            "ret_flight": "CZ6029", "ret_airline": "CZ",
+            "ret_depart": "2026-05-26T10:30", "ret_arrive": "2026-05-26T13:30",
+            "total_price": 1200000, "price_per_person": 300000, "seats": 15,
+        },
+        {
+            "route": "대구 → 삿포로", "date_label": "5/23~5/26 (3박4일)",
+            "nights": 3, "days": 4, "origin": "TAE", "destination": "CTS",
+            "dep_date": "2026-05-23", "ret_date": "2026-05-26",
+            "go_flight": "TW281", "go_airline": "TW",
+            "go_depart": "2026-05-23T11:00", "go_arrive": "2026-05-23T13:40",
+            "ret_flight": "TW282", "ret_airline": "TW",
+            "ret_depart": "2026-05-26T14:50", "ret_arrive": "2026-05-26T17:30",
+            "total_price": 1520000, "price_per_person": 380000, "seats": 4,
         },
     ]
     return demo_results
